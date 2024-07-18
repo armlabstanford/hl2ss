@@ -147,7 +147,7 @@ A sample Unity project (2020.3.42f1) can be found in the [hl2ss_unity](hl2ss_uni
 4. Set Target Device to HoloLens.
 5. Set Architecture to ARM64.
 6. Set Build and Run on Remote Device (via Device Portal).
-7. Set Device Portal Address to your HoloLens IP address (e.g., https://192.168.1.7) and set your Device Portal Username and Password.
+7. Set Device Portal Address to your HoloLens IP address (e.g., https://192.169.1.41) and set your Device Portal Username and Password.
 8. Click Build and Run. Unity may ask for a Build folder. You can create a new one named Build.
 
 **Adding the plugin to an existing project**

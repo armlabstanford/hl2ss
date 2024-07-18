@@ -25,7 +25,7 @@ from mmdet.datasets import CocoPanopticDataset
 # Settings --------------------------------------------------------------------
 
 # HoloLens address
-host = '192.168.1.7'
+host = '192.169.1.41'
 
 # Port
 vlc_port = hl2ss.StreamPort.RM_VLC_LEFTFRONT

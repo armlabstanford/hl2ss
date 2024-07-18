@@ -8,7 +8,7 @@ import hl2ss
 # ----------------------------- Settings ------------------------------------- #
 
 # HoloLens address
-HL_HOST = os.getenv("HOLOLENS_URL") or "192.168.1.7"
+HL_HOST = os.getenv("HOLOLENS_URL") or "192.169.1.41"
 
 # Data server login
 API_HOST = os.getenv('API_URL') or 'localhost:8000'

@@ -12,7 +12,7 @@ import hl2ss_lnm
 # Settings --------------------------------------------------------------------
 
 # HoloLens address
-host = '192.168.1.7'
+host = '192.169.1.41'
 
 # Target Frame Rate
 # Options: 30, 60, 90

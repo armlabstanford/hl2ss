@@ -602,7 +602,7 @@ void test_mt(char const* host)
 
 int main()
 {
-    char const* host = "192.168.1.7";
+    char const* host = "192.169.1.41";
     int test_id = 20;
 
     try

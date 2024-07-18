@@ -17,7 +17,7 @@ import hl2ss_3dcv
 # Settings --------------------------------------------------------------------
 
 # HoloLens 2 address
-host = '192.168.1.7'
+host = '192.169.1.41'
 
 # Ports
 port_left  = hl2ss.StreamPort.RM_VLC_LEFTFRONT

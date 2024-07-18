@@ -20,7 +20,7 @@ import hl2ss_rus
 # Settings --------------------------------------------------------------------
 
 # HoloLens address
-host = '192.168.1.7'
+host = '192.169.1.41'
 
 # Camera parameters
 width_pv = 760

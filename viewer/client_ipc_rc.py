@@ -11,7 +11,7 @@ import hl2ss_lnm
 # Settings --------------------------------------------------------------------
 
 # HoloLens address
-host = '192.168.1.7'
+host = '192.169.1.41'
 
 # Run hl2ss in flat mode
 # Allows running hl2ss alongside other applications (including holographics)
