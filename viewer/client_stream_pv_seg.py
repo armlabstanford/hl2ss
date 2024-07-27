@@ -15,13 +15,12 @@ import hl2ss_imshow
 import hl2ss
 import hl2ss_lnm
 
-from pycocotools import mask as coco_mask # to decode segmented mask (coco rle format)
-
 # RAP-SAM (TODO: change the path) --------------------------------------------------------------------
+from pycocotools import mask as coco_mask # to decode segmented mask (coco rle format)
 import demo.segmentation as rapsam
 config_path = '/home/yu/RAP-SAM/configs/rap_sam/eval_rap_sam_coco.py'
 checkpoint_path = '/home/yu/RAP-SAM/rapsam_r50_12e.pth'
-image_path = '/home/yu/RAP-SAM/demo/demo2_s.jpg'
+# image_path = '/home/yu/RAP-SAM/demo/demo2_s.jpg'
 # output_path = '/home/yu/RAP-SAM/output/vis'
 
 # Initialize the model
@@ -114,10 +113,8 @@ else:
         img_seg = inference['visualization'][0] # visualization of inference
         cv2.imshow('Segmentation', img_seg)
 
-        # Segmentation Mask
+        # TODO: select based on label index == object
         mask_binary = rapsam.get_combined_binary_mask(inference)
-        # mask_coco_rle = inference['predictions'][0]['masks'][5] # TODO: select based on label index == object
-        # mask_binary = coco_mask.decode(mask_coco_rle) # 0 or 1
         if mask_binary is not None:
             # Apply the mask to your images if it exists
             img_rgb_masked = img_rgb * mask_binary[:, :, None]  # Apply mask to RGB image
