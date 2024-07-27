@@ -15,12 +15,14 @@ import hl2ss_imshow
 import hl2ss
 import hl2ss_lnm
 
+from pycocotools import mask as coco_mask # to decode segmented mask (coco rle format)
+
 # RAP-SAM (TODO: change the path) --------------------------------------------------------------------
 import demo.segmentation as rapsam
 config_path = '/home/yu/RAP-SAM/configs/rap_sam/eval_rap_sam_coco.py'
 checkpoint_path = '/home/yu/RAP-SAM/rapsam_r50_12e.pth'
 image_path = '/home/yu/RAP-SAM/demo/demo2_s.jpg'
-output_path = '/home/yu/RAP-SAM/output/vis'
+# output_path = '/home/yu/RAP-SAM/output/vis'
 
 # Initialize the model
 model = rapsam.init_inferencer(config_path, checkpoint_path)
@@ -104,13 +106,28 @@ else:
         # print(data.pose)
         # print(f'Focal length: {data.payload.focal_length}')
         # print(f'Principal point: {data.payload.principal_point}')
-        cv2.imshow('Video', data.payload.image)
+        img_rgb = data.payload.image
+        cv2.imshow('Video', img_rgb)
 
-        # Real-time segmentation on RGB input
-        rapsam_img = rapsam.infer(model, data.payload.image, output_path)
-        rapsam_img = cv2.cvtColor(rapsam_img, cv2.COLOR_BGR2RGB) 
-        # print(type(rapsam_img))
-        cv2.imshow('Segmentation', rapsam_img)
+        # Real-time segmentation on RGB input (visualization)
+        inference = rapsam.infer(model, img_rgb) # inference result:dict
+        img_seg = inference['visualization'][0] # visualization of inference
+        cv2.imshow('Segmentation', img_seg)
+
+        # Segmentation Mask
+        mask_binary = rapsam.get_combined_binary_mask(inference)
+        # mask_coco_rle = inference['predictions'][0]['masks'][5] # TODO: select based on label index == object
+        # mask_binary = coco_mask.decode(mask_coco_rle) # 0 or 1
+        if mask_binary is not None:
+            # Apply the mask to your images if it exists
+            img_rgb_masked = img_rgb * mask_binary[:, :, None]  # Apply mask to RGB image
+            img_seg_masked = img_seg * mask_binary[:, :, None]  # Apply mask to segmentation image
+        else:
+            # If no mask, use the original images
+            img_rgb_masked = img_rgb * 0
+            img_seg_masked = img_seg * 0
+
+        cv2.imshow('Mask for Object 0', img_rgb_masked)
         cv2.waitKey(1)
 
     client.close()
