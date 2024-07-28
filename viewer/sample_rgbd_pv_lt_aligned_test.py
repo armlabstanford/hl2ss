@@ -4,7 +4,7 @@
 # Press space to stop.
 #------------------------------------------------------------------------------
 
-from pynput import keyboard
+# from pynput import keyboard
 
 import multiprocessing as mp
 import numpy as np
@@ -23,6 +23,9 @@ from metric_depth.depth_anything_v2.dpt import DepthAnythingV2
 
 import numpy as np
 
+## --------------- DEFINE USER -----------------
+user = 'shivani'
+
 # Depth Anything Setup --------------------------------------------------------------------
 # load the depth anything model
 DEVICE = 'cuda' if torch.cuda.is_available() else 'mps' if torch.backends.mps.is_available() else 'cpu'
@@ -39,15 +42,14 @@ dataset = 'hypersim' # 'hypersim' for indoor model, 'vkitti' for outdoor model
 max_depth = 20 # 20 for indoor model, 80 for outdoor model
 
 model = DepthAnythingV2(**{**model_configs[encoder], 'max_depth': max_depth})
-model.load_state_dict(torch.load(f'/home/yu/Depth-Anything-V2/checkpoints/depth_anything_v2_metric_{dataset}_{encoder}.pth', map_location='cpu'))
-
+model.load_state_dict(torch.load(f'/home/shivani/Depth-Anything-V2/checkpoints/depth_anything_v2_metric_{dataset}_{encoder}.pth', map_location='cpu'))
 model = model.to(DEVICE).eval()
 
 # RAP-SAM (TODO: change the path) --------------------------------------------------------------------
 from pycocotools import mask as coco_mask # to decode segmented mask (coco rle format)
 import demo.segmentation as rapsam
-config_path = '/home/yu/RAP-SAM/configs/rap_sam/eval_rap_sam_coco.py'
-checkpoint_path = '/home/yu/RAP-SAM/rapsam_r50_12e.pth'
+config_path = '/home/shivani/RAP-SAM/configs/rap_sam/eval_rap_sam_coco.py'
+checkpoint_path = '/home/shivani/RAP-SAM/rapsam_r50_12e.pth'
 # image_path = '/home/yu/RAP-SAM/demo/demo2_s.jpg'
 # output_path = '/home/yu/RAP-SAM/output/vis'
 
@@ -94,16 +96,16 @@ def learn_scale_and_offset_raw(dense_depth, sparse_depth):
 #------------------------------------------------------------------------------
 
 if __name__ == '__main__':
-    # Keyboard events ---------------------------------------------------------
+    # # Keyboard events ---------------------------------------------------------
     enable = True
 
-    def on_press(key):
-        global enable
-        enable = key != keyboard.Key.space
-        return enable
+    # def on_press(key):
+    #     global enable
+    #     enable = key != keyboard.Key.space
+    #     return enable
 
-    listener = keyboard.Listener(on_press=on_press)
-    listener.start()
+    # listener = keyboard.Listener(on_press=on_press)
+    # listener.start()
 
     # Start PV Subsystem ------------------------------------------------------
     hl2ss_lnm.start_subsystem_pv(host, hl2ss.StreamPort.PERSONAL_VIDEO)
@@ -119,10 +121,10 @@ if __name__ == '__main__':
     o3d_lt_intrinsics = o3d.camera.PinholeCameraIntrinsic(hl2ss.Parameters_RM_DEPTH_LONGTHROW.WIDTH, hl2ss.Parameters_RM_DEPTH_LONGTHROW.HEIGHT, calibration_lt.intrinsics[0, 0], calibration_lt.intrinsics[1, 1], calibration_lt.intrinsics[2, 0], calibration_lt.intrinsics[2, 1])
 
     
-    # vis = o3d.visualization.Visualizer()
-    # vis.create_window()
-    # pcd = o3d.geometry.PointCloud()
-    # first_pcd = True
+    vis = o3d.visualization.Visualizer()
+    vis.create_window()
+    pcd = o3d.geometry.PointCloud()
+    first_pcd = True
 
     # Start PV and RM Depth Long Throw streams --------------------------------
     producer = hl2ss_mp.producer()
@@ -144,7 +146,7 @@ if __name__ == '__main__':
     # Initialize PV intrinsics and extrinsics ---------------------------------
     pv_intrinsics = hl2ss.create_pv_intrinsics_placeholder()
     pv_extrinsics = np.eye(4, 4, dtype=np.float32)
- 
+    # print("here")
     # Main Loop ---------------------------------------------------------------
     while (enable):
         # Wait for RM Depth Long Throw frame ----------------------------------
@@ -158,6 +160,7 @@ if __name__ == '__main__':
         _, data_pv = sink_pv.get_nearest(data_lt.timestamp)
         if ((data_pv is None) or (not hl2ss.is_valid_pose(data_pv.pose))):
             continue
+        # print("here")
 
         # Preprocess frames ---------------------------------------------------
         raw_depth_lt = hl2ss_3dcv.rm_depth_undistort(data_lt.payload.depth, calibration_lt.undistort_map)
@@ -195,6 +198,7 @@ if __name__ == '__main__':
         mask_uv = hl2ss_3dcv.slice_to_block((pv_uv[:, :, 0] < 0) | (pv_uv[:, :, 0] >= pv_width) | (pv_uv[:, :, 1] < 0) | (pv_uv[:, :, 1] >= pv_height))
         normalized_depth_lt[mask_uv] = 0
 
+        # print("here")
 
         # extra for DD alignment
         raw_depth_remapped = np.expand_dims(raw_depth_remapped, axis=-1)
@@ -227,7 +231,7 @@ if __name__ == '__main__':
         normalized_aligned_depth_DA = cv2.normalize(aligned_depth, None, 0, 255, cv2.NORM_MINMAX) # Normalize the depth map for display
         normalized_aligned_depth_DA = normalized_aligned_depth_DA.astype('uint8')
         colored_aligned_depth_DA = cv2.applyColorMap(normalized_aligned_depth_DA, cv2.COLORMAP_JET) # DEPTH, HxW
-
+        print("here")
         # -----------------------SEGMENTATION -----------------------
         inference = rapsam.infer(model_seg, img_rgb) # inference result:dict
         img_seg = inference['visualization'][0] # visualization of inference
@@ -253,8 +257,6 @@ if __name__ == '__main__':
         cv2.imshow('Depth (segmented)', img_depth_masked)
         cv2.waitKey(1)
 
-        
-
         # # depth sanity check
         # center_pixel = (int(normalized_aligned_depth_DA.shape[1] / 2), int(normalized_aligned_depth_DA.shape[0] / 2))
         # print(f"Depth at center pixel: {aligned_depth[center_pixel[1], center_pixel[0]]}")
@@ -262,16 +264,39 @@ if __name__ == '__main__':
         # Convert to Open3D RGBD image and create pointcloud ------------------
         # color_image_lt = o3d.geometry.Image(color_remapped)
         # depth_image_lt = o3d.geometry.Image(normalized_depth_lt)
-        color_image = o3d.geometry.Image(img_rgb)
-        depth_image = o3d.geometry.Image(aligned_depth)
+        # color_image = o3d.geometry.Image(img_rgb)
+        # depth_image = o3d.geometry.Image(aligned_depth)
+
+        # segmented
+        img_rgb_masked = cv2.cvtColor(img_rgb_masked, cv2.COLOR_BGR2RGB) # opencv bgr to rgb
+        color_image = o3d.geometry.Image(img_rgb_masked)
+        depth_image = o3d.geometry.Image(img_depth_masked)
 
         rgbd = o3d.geometry.RGBDImage.create_from_color_and_depth(color_image, depth_image, depth_scale=1, depth_trunc=max_depth, convert_rgb_to_intensity=False)
-        # rgbd_lt = o3d.geometry.RGBDImage.create_from_color_and_depth(color_image_lt, depth_image_lt, depth_scale=1, depth_trunc=max_depth, convert_rgb_to_intensity=False)
         o3d_pv_intrinsics = o3d.camera.PinholeCameraIntrinsic(pv_width, pv_height, color_intrinsics[0, 0], color_intrinsics[1, 1], color_intrinsics[2, 0], color_intrinsics[2, 1])
         tmp_pcd = o3d.geometry.PointCloud.create_from_rgbd_image(rgbd, o3d_pv_intrinsics)
-        # tmp_pcd_lt = o3d.geometry.PointCloud.create_from_rgbd_image(rgbd_lt, o3d_lt_intrinsics)
 
         # Display pointcloud --------------------------------------------------
+        # HANDLE: empty point cloud (no input from segmentation)
+        empty_pcd = o3d.geometry.PointCloud()
+
+        if len(tmp_pcd.points) == 0:
+            pcd.points = empty_pcd.points
+            pcd.colors = empty_pcd.colors
+        else:
+            # Display point cloud
+            pcd.points = tmp_pcd.points
+            pcd.colors = tmp_pcd.colors
+
+        if first_pcd:
+            vis.add_geometry(pcd)
+            first_pcd = False
+        else:
+            vis.update_geometry(pcd)
+
+        vis.poll_events()
+        vis.update_renderer()
+
         # pcd.points = tmp_pcd.points
         # pcd.colors = tmp_pcd.colors
 
@@ -286,9 +311,6 @@ if __name__ == '__main__':
         # else:
         #     vis.update_geometry(pcd)
 
-        # vis.poll_events()
-        # vis.update_renderer()
-
     # Stop PV and RM Depth Long Throw streams ---------------------------------
     sink_pv.detach()
     sink_depth.detach()
@@ -298,5 +320,5 @@ if __name__ == '__main__':
     # Stop PV subsystem -------------------------------------------------------
     hl2ss_lnm.stop_subsystem_pv(host, hl2ss.StreamPort.PERSONAL_VIDEO)
 
-    # Stop keyboard events ----------------------------------------------------
-    listener.join()
+    # # Stop keyboard events ----------------------------------------------------
+    # listener.join()
