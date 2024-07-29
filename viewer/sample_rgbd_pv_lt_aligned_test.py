@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 #------------------------------------------------------------------------------
 # This script demonstrates how to create aligned RGBD images, which can be used
 # with Open3D, from the depth and front RGB cameras of the HoloLens.
@@ -22,6 +24,24 @@ import matplotlib.pyplot as plt
 from metric_depth.depth_anything_v2.dpt import DepthAnythingV2
 
 import numpy as np
+
+import rospy
+from sensor_msgs.msg import PointCloud2
+from sensor_msgs import point_cloud2
+from convert_open3d_ros import convertCloudFromOpen3dToRos
+
+# initialize the ros node
+rospy.init_node('pcd', anonymous=True)
+pub_pcd = rospy.Publisher('hl_pcd', PointCloud2, queue_size=10)
+rate = rospy.Rate(10)  # 10hz
+
+def pcd_publisher(pcd):
+    # convert open3d point cloud to ros point cloud
+    # loggin when the point cloud is published
+    rospy.loginfo("Publishing point cloud")
+    msg_pcd = convertCloudFromOpen3dToRos(pcd) # sensor_msgs.msg.PointCloud2
+    pub_pcd.publish(msg_pcd)
+    rate.sleep()
 
 ## --------------- DEFINE USER -----------------
 user = 'shivani'
@@ -121,10 +141,10 @@ if __name__ == '__main__':
     o3d_lt_intrinsics = o3d.camera.PinholeCameraIntrinsic(hl2ss.Parameters_RM_DEPTH_LONGTHROW.WIDTH, hl2ss.Parameters_RM_DEPTH_LONGTHROW.HEIGHT, calibration_lt.intrinsics[0, 0], calibration_lt.intrinsics[1, 1], calibration_lt.intrinsics[2, 0], calibration_lt.intrinsics[2, 1])
 
     
-    vis = o3d.visualization.Visualizer()
-    vis.create_window()
+    # vis = o3d.visualization.Visualizer()
+    # vis.create_window()
     pcd = o3d.geometry.PointCloud()
-    first_pcd = True
+    # first_pcd = True
 
     # Start PV and RM Depth Long Throw streams --------------------------------
     producer = hl2ss_mp.producer()
@@ -287,15 +307,22 @@ if __name__ == '__main__':
             # Display point cloud
             pcd.points = tmp_pcd.points
             pcd.colors = tmp_pcd.colors
+    
+        # # output pcd (xyz)
+        # points = np.asarray(pcd.points)
+        # print(f'point cloud length: {points.shape} ')
 
-        if first_pcd:
-            vis.add_geometry(pcd)
-            first_pcd = False
-        else:
-            vis.update_geometry(pcd)
+        # publish the point cloud
+        pcd_publisher(pcd) 
 
-        vis.poll_events()
-        vis.update_renderer()
+        # if first_pcd:
+        #     vis.add_geometry(pcd)
+        #     first_pcd = False
+        # else:
+        #     vis.update_geometry(pcd)
+
+        # vis.poll_events()
+        # vis.update_renderer()
 
         # pcd.points = tmp_pcd.points
         # pcd.colors = tmp_pcd.colors
