@@ -19,6 +19,12 @@ import numpy as np
 # info_pub = rospy.Publisher("/camera/camera_info", CameraInfo, queue_size=10)
 # br = TransformBroadcaster()
 
+# DECLARE CONSTANTS
+HEIGHT = 1920 # image heigh
+WIDTH = 1080 # image width
+CAM_K = [-1467.6746, 0.0, 946.79413, 0.0, 1472.0300, 509.88123, 0.0, 0.0, 1.0] # pv camera instrinsics
+CAM_P = [-1467.6746, 0.0, 946.79413, 0.0, 0.0, 1472.03, 509.88123, 0.0, 0.0, 0.0, 1.0, 0.0] # projection matrix
+
 # ------------------------- publisher for /camera/camera_info and /camera/image_rect (for apriltag_ros) -----------------------------
 def publish_camera_data(image, image_pub, info_pub):
     bridge = CvBridge()
@@ -26,10 +32,10 @@ def publish_camera_data(image, image_pub, info_pub):
     # Set a fixed camera info (adjust parameters as needed)
     camera_info = CameraInfo()
     camera_info.header.frame_id = "camera"
-    camera_info.height = 1920
-    camera_info.width = 1080
-    camera_info.K = [-1467.6746, 0.0, 946.79413, 0.0, 1472.0300, 509.88123, 0.0, 0.0, 1.0]  # Example intrinsic matrix
-    camera_info.P = [-1467.6746, 0.0, 946.79413, 0.0, 0.0, 1472.03, 509.88123, 0.0, 0.0, 0.0, 1.0, 0.0]
+    camera_info.height = HEIGHT
+    camera_info.width = WIDTH
+    camera_info.K = CAM_K
+    camera_info.P = CAM_P
 
     camera_info.header.stamp = rospy.Time.now()
     image_msg = bridge.cv2_to_imgmsg(image, "bgr8")
