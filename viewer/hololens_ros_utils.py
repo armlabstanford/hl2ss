@@ -22,8 +22,12 @@ import numpy as np
 # DECLARE CONSTANTS
 HEIGHT = 1920 # image heigh
 WIDTH = 1080 # image width
-CAM_K = [-1467.6746, 0.0, 946.79413, 0.0, 1472.0300, 509.88123, 0.0, 0.0, 1.0] # pv camera instrinsics
-CAM_P = [-1467.6746, 0.0, 946.79413, 0.0, 0.0, 1472.03, 509.88123, 0.0, 0.0, 0.0, 1.0, 0.0] # projection matrix
+# CAM_K = [-1467.6746, 0.0, 946.79413, 0.0, 1472.0300, 509.88123, 0.0, 0.0, 1.0] # pv camera instrinsics
+CAM_K = [ 2977.81147,0.0,1912.95666, 0.0, 2973.12682, 1033.60601, 0.0, 0.0, 1.0] # pv camera instrinsics (should be 3x3)
+# CAM_P = [-1467.6746, 0.0, 946.79413, 0.0, 0.0, 1472.03, 509.88123, 0.0, 0.0, 0.0, 1.0, 0.0] # projection matrix (3x4)
+CAM_P = [ 2979.18188,     0.     ,  1910.6746 ,     0.     , 
+             0.     ,  2977.0647 ,  1031.83588,     0.     ,
+             0.     ,     0.     ,     1.     ,     0.     ] # projection matrix (3x4)
 
 # ------------------------- publisher for /camera/camera_info and /camera/image_rect (for apriltag_ros) -----------------------------
 def publish_camera_data(image, image_pub, info_pub):
