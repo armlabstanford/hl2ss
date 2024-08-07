@@ -56,47 +56,40 @@ def publish_camera_data(image, image_pub, info_pub):
 # ------------------------- tf broadcaster -----------------------------
 def broadcast_tf(camera_pose, br):
     # Create a TransformStamped message for world to camera
-    world_to_camera = TransformStamped()
-    world_to_camera.header.frame_id = "hl_world"
-    world_to_camera.child_frame_id = "camera_cv" # broadcast converted camera frame in OpenCV from OpenGL
+    camera_to_world = TransformStamped()
+    camera_to_world.header.frame_id = "hl_world"
+    camera_to_world.child_frame_id = "camera_cv" # broadcast converted camera frame in OpenCV from OpenGL
 
-    # get camera pose cv
-    camera_pose_gl = camera_pose.T # transpose because the camera pose from hl2ss is a transposed transformation 
-    camera_pose_cv = opengl_to_opencv(camera_pose_gl) # gl to cv
+    # get camera_cv to hl_world transformation
+    T_w_gl = camera_pose.T # cam_gl to world frame (raw camera_pose is transposed)
+    T_gl_cv = np.array([[1, 0, 0, 0],
+                        [0,-1, 0, 0],
+                        [0, 0, -1, 0],
+                        [0, 0, 0, 1]]) # cam_cv to cam_gl frame
+    T_w_cv = T_w_gl @ T_gl_cv # cam_cv to world frame
 
     # Extract translation from the matrix
-    translation = camera_pose_cv[0:3, 3]
-    world_to_camera.transform.translation.x = translation[0]
-    world_to_camera.transform.translation.y = translation[1]
-    world_to_camera.transform.translation.z = translation[2]
+    translation = T_w_cv[0:3, 3]
+    camera_to_world.transform.translation.x = translation[0]
+    camera_to_world.transform.translation.y = translation[1]
+    camera_to_world.transform.translation.z = translation[2]
 
     # Extract quaternion from 4x4 transformation matrix SE3 (tho only the rotation matrix is used (SO3))
     # https://github.com/ros/geometry/issues/64
-    if np.trace(camera_pose_cv) != 0:
-        quaternion = transformations.quaternion_from_matrix(camera_pose_cv)
-        world_to_camera.transform.rotation.x = quaternion[0]
-        world_to_camera.transform.rotation.y = quaternion[1]
-        world_to_camera.transform.rotation.z = quaternion[2]
-        world_to_camera.transform.rotation.w = quaternion[3]
+    if np.trace(T_w_cv) != 0:
+        quaternion = transformations.quaternion_from_matrix(T_w_cv)
+        camera_to_world.transform.rotation.x = quaternion[0]
+        camera_to_world.transform.rotation.y = quaternion[1]
+        camera_to_world.transform.rotation.z = quaternion[2]
+        camera_to_world.transform.rotation.w = quaternion[3]
 
-        world_to_camera.header.stamp = rospy.Time.now()
-        br.sendTransform(world_to_camera)
-
-def opengl_to_opencv(camera_pose_gl):
-    # transformation from gl to cv (gl pose in cv frame)
-    T_gl_to_cv = np.array([
-                            [1, 0, 0, 0],
-                            [0,-1, 0, 0],
-                            [0, 0, -1, 0],
-                            [0, 0, 0, 1]
-                        ])
-    camera_pose_cv = T_gl_to_cv @ camera_pose_gl
-    return camera_pose_cv
+        camera_to_world.header.stamp = rospy.Time.now()
+        br.sendTransform(camera_to_world)
 
 # TESTER
-# if __name__ == '__main__':
-#     try:
-#         camera_pose = []
-#         broadcast_transforms(camera_pose)
-#     except rospy.ROSInterruptException:
-#         pass
+if __name__ == '__main__':
+    try:
+        camera_pose = []
+        broadcast_tf(camera_pose)
+    except rospy.ROSInterruptException:
+        pass
