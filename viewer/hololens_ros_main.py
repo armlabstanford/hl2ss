@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import cv2
 import hl2ss_imshow
 import hl2ss
@@ -11,7 +13,7 @@ from tf2_ros import TransformBroadcaster
 # Settings --------------------------------------------------------------------
 
 # HoloLens address
-host = "192.169.1.6"
+host = "192.169.1.45"
 
 # Operating mode
 # 0: video
@@ -39,11 +41,7 @@ def main():
     # Declare pub and br
     image_pub = rospy.Publisher("/camera/image_rect", Image, queue_size=10)
     info_pub = rospy.Publisher("/camera/camera_info", CameraInfo, queue_size=10)
-    br = TransformBroadcaster()
-
-    # # Set the rates for the image publisher and the TF broadcaster
-    # image_rate = rospy.Rate(120)  
-    # tf_rate = rospy.Rate(30)     
+    br = TransformBroadcaster()   
 
     # Start the client object to get HoloLens2 data
     hl2ss_lnm.start_subsystem_pv(host, hl2ss.StreamPort.PERSONAL_VIDEO, enable_mrc=enable_mrc, shared=shared)
@@ -56,13 +54,8 @@ def main():
         data = client.get_next_packet()
 
         # Publish image data + broadcast tf
-        broadcast_tf(data.pose, br=br) # ~10 HZ
-        publish_camera_data(data.payload.image, image_pub=image_pub, info_pub=info_pub) # ~ 120 HZ
-
-        # # Sleep to maintain the loop rate
-        # tf_rate.sleep()
-        # image_rate.sleep()
-
+        broadcast_tf(data.pose, br=br) 
+        publish_camera_data(data.payload.image, image_pub=image_pub, info_pub=info_pub) 
 
     # after the loop, exit
     client.close()
