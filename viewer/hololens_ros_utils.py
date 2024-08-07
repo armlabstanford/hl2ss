@@ -72,14 +72,15 @@ def broadcast_tf(camera_pose, br):
 
     # Extract quaternion from 4x4 transformation matrix SE3 (tho only the rotation matrix is used (SO3))
     # https://github.com/ros/geometry/issues/64
-    quaternion = transformations.quaternion_from_matrix(camera_pose_cv)
-    world_to_camera.transform.rotation.x = quaternion[0]
-    world_to_camera.transform.rotation.y = quaternion[1]
-    world_to_camera.transform.rotation.z = quaternion[2]
-    world_to_camera.transform.rotation.w = quaternion[3]
+    if np.trace(camera_pose_cv) != 0:
+        quaternion = transformations.quaternion_from_matrix(camera_pose_cv)
+        world_to_camera.transform.rotation.x = quaternion[0]
+        world_to_camera.transform.rotation.y = quaternion[1]
+        world_to_camera.transform.rotation.z = quaternion[2]
+        world_to_camera.transform.rotation.w = quaternion[3]
 
-    world_to_camera.header.stamp = rospy.Time.now()
-    br.sendTransform(world_to_camera)
+        world_to_camera.header.stamp = rospy.Time.now()
+        br.sendTransform(world_to_camera)
 
 def opengl_to_opencv(camera_pose_gl):
     # transformation from gl to cv (gl pose in cv frame)
