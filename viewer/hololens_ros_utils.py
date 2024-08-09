@@ -20,8 +20,9 @@ import numpy as np
 # br = TransformBroadcaster()
 
 # DECLARE CONSTANTS
-HEIGHT = 1920 # image height
-WIDTH = 1080 # image width
+WIDTH =  1920 # image width
+HEIGHT = 1080 # image height
+
 
 # camera info: from camera_calibration on not broken hololens (NO.3)
 D = [0.01578507813331108, -0.0425577690521911, 0.001535108606462915, -0.0005645046966343704, 0.0] # distortion
